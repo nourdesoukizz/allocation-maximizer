@@ -1,0 +1,371 @@
+{
+  "summary": {
+    "title": "Allocation Maximizer",
+    "status": "Optimized",
+    "optimizationScore": 89,
+    "revenueIncrease": "$378,500",
+    "allocationEfficiency": 92.8,
+    "marginPreservation": "15%"
+  },
+  "customers": [
+    {
+      "id": "MTX-2024",
+      "name": "MicroTech",
+      "location": { "lat": 40.7128, "lng": -74.0060 },
+      "tier": "Strategic",
+      "priority": "high",
+      "serviceLevel": 98.5,
+      "revenue": 1250000
+    },
+    {
+      "id": "TGI-4571",
+      "name": "TechGiant Inc.",
+      "location": { "lat": 40.7128, "lng": -74.0060 },
+      "tier": "Strategic",
+      "priority": "high",
+      "serviceLevel": 98.5,
+      "revenue": 1250000
+    },
+    {
+      "id": "DCN-8829",
+      "name": "DataCore Networks",
+      "location": { "lat": 33.7490, "lng": -84.3880 },
+      "tier": "Standard",
+      "priority": "medium",
+      "serviceLevel": 95.0,
+      "revenue": 780000
+    },
+    {
+      "id": "INN-3341",
+      "name": "Innovate Solutions",
+      "location": { "lat": 34.0522, "lng": -118.2437 },
+      "tier": "Strategic",
+      "priority": "high",
+      "serviceLevel": 97.5,
+      "revenue": 950000
+    },
+    {
+      "id": "MWD-7752",
+      "name": "Midwest Distributors",
+      "location": { "lat": 41.8781, "lng": -87.6298 },
+      "tier": "Standard",
+      "priority": "medium",
+      "serviceLevel": 94.0,
+      "revenue": 625000
+    },
+    {
+      "id": "SSC-9883",
+      "name": "Southern Suppliers Co.",
+      "location": { "lat": 29.7604, "lng": -95.3698 },
+      "tier": "Standard",
+      "priority": "low",
+      "serviceLevel": 92.0,
+      "revenue": 410000
+    }
+  ],
+  "distributionCenters": [
+    {
+      "id": "NYC-CENTRAL",
+      "name": "Northeast Regional DC",
+      "location": { "lat": 40.7128, "lng": -74.0060 },
+      "storageCapacity": {
+        "product_A": 15000,
+        "product_B": 12000,
+        "product_C": 18000
+      }
+    },
+    {
+      "id": "TX-SOUTHWEST",
+      "name": "Southwest Distribution",
+      "location": { "lat": 29.7604, "lng": -95.3698 },
+      "storageCapacity": {
+        "product_A": 12000,
+        "product_B": 14000,
+        "product_C": 10000
+      }
+    },
+    {
+      "id": "CA-WESTCOAST",
+      "name": "West Coast Center",
+      "location": { "lat": 34.0522, "lng": -118.2437 },
+      "storageCapacity": {
+        "product_A": 14000,
+        "product_B": 11000,
+        "product_C": 13000
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "SSD-ENT-2TB",
+      "name": "High Enterprise SSDs",
+      "currentPrice": 12500,
+      "projectedPriceIncrease": 18,
+      "unit": "unit",
+      "priority": "high",
+      "storageVolume": 12
+    },
+    {
+      "id": "SW-NET-48P",
+      "name": "Network Switches",
+      "currentPrice": 5800,
+      "projectedPriceIncrease": 8,
+      "unit": "unit",
+      "priority": "medium",
+      "storageVolume": 5
+    },
+    {
+      "id": "SA-RAID-10",
+      "name": "Storage Arrays",
+      "currentPrice": 9200,
+      "projectedPriceIncrease": 15,
+      "unit": "unit",
+      "priority": "high",
+      "storageVolume": 10
+    }
+  ],
+  "allocations": [
+    {
+      "id": "ALLOC001",
+      "customerId": "CUST001",
+      "product": "product_A",
+      "allocatedQuantity": 120,
+      "consumedQuantity": 95,
+      "projectedConsumption": 105,
+      "fulfillmentPercentage": 79,
+      "remainingAllocation": 25,
+      "allocatedDcId": "DC001",
+      "price": 12500,
+      "futurePrice": 14750,
+      "allocPeriod": "2024-Q3"
+    },
+    {
+      "id": "ALLOC002",
+      "customerId": "CUST001",
+      "product": "product_B",
+      "allocatedQuantity": 200,
+      "consumedQuantity": 185,
+      "projectedConsumption": 220,
+      "fulfillmentPercentage": 93,
+      "remainingAllocation": 15,
+      "allocatedDcId": "DC001",
+      "price": 5800,
+      "futurePrice": 6264,
+      "allocPeriod": "2024-Q3"
+    },
+    {
+      "id": "ALLOC003",
+      "customerId": "CUST002",
+      "product": "product_A",
+      "allocatedQuantity": 85,
+      "consumedQuantity": 45,
+      "projectedConsumption": 60,
+      "fulfillmentPercentage": 53,
+      "remainingAllocation": 40,
+      "allocatedDcId": "DC002",
+      "price": 12500,
+      "futurePrice": 14750,
+      "allocPeriod": "2024-Q3"
+    },
+    {
+      "id": "ALLOC004",
+      "customerId": "CUST002",
+      "product": "product_C",
+      "allocatedQuantity": 110,
+      "consumedQuantity": 65,
+      "projectedConsumption": 95,
+      "fulfillmentPercentage": 59,
+      "remainingAllocation": 45,
+      "allocatedDcId": "DC002",
+      "price": 9200,
+      "futurePrice": 10580,
+      "allocPeriod": "2024-Q3"
+    },
+    {
+      "id": "ALLOC005",
+      "customerId": "CUST003",
+      "product": "product_B",
+      "allocatedQuantity": 175,
+      "consumedQuantity": 165,
+      "projectedConsumption": 190,
+      "fulfillmentPercentage": 94,
+      "remainingAllocation": 10,
+      "allocatedDcId": "DC003",
+      "price": 5800,
+      "futurePrice": 6264,
+      "allocPeriod": "2024-Q3"
+    },
+    {
+      "id": "ALLOC006",
+      "customerId": "CUST003",
+      "product": "product_C",
+      "allocatedQuantity": 95,
+      "consumedQuantity": 85,
+      "projectedConsumption": 105,
+      "fulfillmentPercentage": 89,
+      "remainingAllocation": 10,
+      "allocatedDcId": "DC003",
+      "price": 9200,
+      "futurePrice": 10580,
+      "allocPeriod": "2024-Q3"
+    },
+    {
+      "id": "ALLOC007",
+      "customerId": "CUST004",
+      "product": "product_A",
+      "allocatedQuantity": 70,
+      "consumedQuantity": 30,
+      "projectedConsumption": 45,
+      "fulfillmentPercentage": 43,
+      "remainingAllocation": 40,
+      "allocatedDcId": "DC001",
+      "price": 12500,
+      "futurePrice": 14750,
+      "allocPeriod": "2024-Q3"
+    },
+    {
+      "id": "ALLOC008",
+      "customerId": "CUST005",
+      "product": "product_B",
+      "allocatedQuantity": 90,
+      "consumedQuantity": 35,
+      "projectedConsumption": 50,
+      "fulfillmentPercentage": 39,
+      "remainingAllocation": 55,
+      "allocatedDcId": "DC002",
+      "price": 5800,
+      "futurePrice": 6264,
+      "allocPeriod": "2024-Q3"
+    },
+    {
+      "id": "ALLOC009",
+      "customerId": "CUST005",
+      "product": "product_C",
+      "allocatedQuantity": 60,
+      "consumedQuantity": 25,
+      "projectedConsumption": 40,
+      "fulfillmentPercentage": 42,
+      "remainingAllocation": 35,
+      "allocatedDcId": "DC002",
+      "price": 9200,
+      "futurePrice": 10580,
+      "allocPeriod": "2024-Q3"
+    }
+  ],
+  "reallocationRecommendations": [
+    {
+      "id": "REALLOC001",
+      "fromCustomerId": "CUST002",
+      "toCustomerId": "CUST001",
+      "product": "product_A",
+      "quantity": 25,
+      "fromAllocationId": "ALLOC003",
+      "rationale": "Low consumption by CUST002 (53%), high demand by Strategic customer CUST001 (94%)",
+      "impact": {
+        "serviceLevel": "+2.5%",
+        "revenue": "+$312,500"
+      }
+    },
+    {
+      "id": "REALLOC002",
+      "fromCustomerId": "CUST005",
+      "toCustomerId": "CUST003",
+      "product": "product_B",
+      "quantity": 15,
+      "fromAllocationId": "ALLOC008",
+      "rationale": "Low consumption by CUST005 (39%), high demand by Strategic customer CUST003 (94%)",
+      "impact": {
+        "serviceLevel": "+1.8%",
+        "revenue": "+$87,000"
+      }
+    },
+    {
+      "id": "REALLOC003",
+      "fromCustomerId": "CUST004",
+      "toCustomerId": "CUST001",
+      "product": "product_A",
+      "quantity": 25,
+      "fromAllocationId": "ALLOC007",
+      "rationale": "Low consumption by CUST004 (43%), high demand by Strategic customer CUST001 (94%)",
+      "impact": {
+        "serviceLevel": "+2.2%",
+        "revenue": "+$312,500"
+      }
+    },
+    {
+      "id": "REALLOC004",
+      "fromCustomerId": "CUST005",
+      "toCustomerId": "CUST003",
+      "product": "product_C",
+      "quantity": 15,
+      "fromAllocationId": "ALLOC009",
+      "rationale": "Low consumption by CUST005 (42%), high demand by Strategic customer CUST003 (89%)",
+      "impact": {
+        "serviceLevel": "+1.5%",
+        "revenue": "+$138,000"
+      }
+    }
+  ],
+  "priceIncreaseRecommendations": [
+    {
+      "id": "HOLD001",
+      "product": "product_C",
+      "quantity": 15,
+      "dcId": "DC001",
+      "currentPrice": 9200,
+      "projectedPrice": 10580,
+      "priceIncreasePct": 15,
+      "revenueImpact": "+$20,700",
+      "rationale": "Significant price increase expected (15%) for high-priority product"
+    },
+    {
+      "id": "HOLD002",
+      "product": "product_A",
+      "quantity": 10,
+      "dcId": "DC003",
+      "currentPrice": 12500,
+      "projectedPrice": 14750,
+      "priceIncreasePct": 18,
+      "revenueImpact": "+$22,500",
+      "rationale": "Substantial price increase expected (18%) for high-priority product"
+    }
+  ],
+  "factors": {
+    "current": {
+      "overall": 85,
+      "quality": 90,
+      "delivery": 80,
+      "payment": 85,
+      "fulfilled1": 100,
+      "fulfilled2": 100
+    },
+    "comparison": {
+      "overall": 75,
+      "quality": 80,
+      "delivery": 70,
+      "payment": 75,
+      "fulfilled1": 80,
+      "fulfilled2": 0
+    }
+  },
+  "selectedModel": "Deep Q-Networks",
+  "demandForecast": [
+    {"date": "2025-07-15", "actual": 78, "models": {"Monte Carlo Simulation": 83, "Markov Decision Processes (MDP)": 80, "ARIMA": 78, "Deep Q-Networks": 85}},
+    {"date": "2025-07-22", "actual": 73, "models": {"Monte Carlo Simulation": 78, "Markov Decision Processes (MDP)": 75, "ARIMA": 73, "Deep Q-Networks": 80}},
+    {"date": "2025-07-29", "actual": 82, "models": {"Monte Carlo Simulation": 87, "Markov Decision Processes (MDP)": 84, "ARIMA": 82, "Deep Q-Networks": 89}},
+    {"date": "2025-08-05", "actual": 87, "models": {"Monte Carlo Simulation": 92, "Markov Decision Processes (MDP)": 89, "ARIMA": 87, "Deep Q-Networks": 94}},
+    {"date": "2025-08-12", "actual": 92, "models": {"Monte Carlo Simulation": 97, "Markov Decision Processes (MDP)": 94, "ARIMA": 92, "Deep Q-Networks": 99}},
+    {"date": "2025-08-19", "actual": 87, "models": {"Monte Carlo Simulation": 92, "Markov Decision Processes (MDP)": 89, "ARIMA": 87, "Deep Q-Networks": 94}},
+    {"date": "2025-08-26", "actual": 82, "models": {"Monte Carlo Simulation": 87, "Markov Decision Processes (MDP)": 84, "ARIMA": 82, "Deep Q-Networks": 89}},
+    {"date": "2025-09-02", "actual": 77, "models": {"Monte Carlo Simulation": 82, "Markov Decision Processes (MDP)": 79, "ARIMA": 77, "Deep Q-Networks": 84}},
+    {"date": "2025-09-09", "actual": 72, "models": {"Monte Carlo Simulation": 77, "Markov Decision Processes (MDP)": 74, "ARIMA": 72, "Deep Q-Networks": 79}},
+    {"date": "2025-09-16", "actual": 72, "models": {"Monte Carlo Simulation": 76, "Markov Decision Processes (MDP)": 73, "ARIMA": 71, "Deep Q-Networks": 78}},
+    {"date": "2025-09-23", "actual": null, "models": {"Monte Carlo Simulation": 75, "Markov Decision Processes (MDP)": 72, "ARIMA": 70, "Deep Q-Networks": 77}},
+    {"date": "2025-09-30", "actual": null, "models": {"Monte Carlo Simulation": 74, "Markov Decision Processes (MDP)": 71, "ARIMA": 69, "Deep Q-Networks": 76}}
+  ],
+  "orderDetails": {
+    "forecast": 80,
+    "allocatedQty": 75,
+    "consumedAllocation": 50
+  }
+}
