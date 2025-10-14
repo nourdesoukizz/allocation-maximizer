@@ -20,6 +20,12 @@ from main import app as backend_app
 # Create main app that serves both API and frontend
 app = FastAPI(title="Allocation Maximizer - Full Stack")
 
+# Add root-level health endpoint for Railway
+@app.get("/health")
+async def health_check():
+    """Root-level health check for Railway deployment"""
+    return {"status": "healthy", "service": "allocation-maximizer"}
+
 # Mount the backend API
 app.mount("/api", backend_app)
 
