@@ -20,13 +20,13 @@ from main import app as backend_app
 # Create main app that serves both API and frontend
 app = FastAPI(title="Allocation Maximizer - Full Stack")
 
-# Add root-level health endpoint for Railway
+# Add root-level health endpoint for Railway - simple and direct
 @app.get("/health")
-async def health_check():
-    """Root-level health check for Railway deployment"""
-    return {"status": "healthy", "service": "allocation-maximizer"}
+async def railway_health_check():
+    """Simple health check for Railway deployment"""
+    return {"status": "healthy"}
 
-# Mount the backend API
+# Mount the backend API under /api
 app.mount("/api", backend_app)
 
 # Serve static frontend files
@@ -37,6 +37,10 @@ if os.path.exists(frontend_dist_path):
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         """Serve frontend for all non-API routes"""
+        # Skip this route for health check
+        if full_path == "health":
+            return {"error": "Route not found"}
+            
         if full_path.startswith("api/"):
             # This shouldn't happen due to mount order, but just in case
             return {"error": "API route not found"}
