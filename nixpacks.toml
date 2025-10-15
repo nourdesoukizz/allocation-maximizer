@@ -1,9 +1,12 @@
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "python311", "python311Packages.pip"]
+nixPkgs = ["nodejs-18_x", "python311", "python311Packages.pip", "python311Packages.setuptools", "python311Packages.wheel"]
+aptPkgs = ["python3-pip"]
 
 [phases.install]
 cmds = [
-    "python3 -m pip install -r requirements.txt",
+    "which python3",
+    "which pip3 || which pip",
+    "pip3 install -r requirements.txt || pip install -r requirements.txt",
     "cd frontend && npm install"
 ]
 
