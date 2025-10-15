@@ -1,12 +1,10 @@
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "python311", "python311Packages.pip", "python311Packages.setuptools", "python311Packages.wheel"]
-aptPkgs = ["python3-pip"]
+nixPkgs = ["nodejs-18_x", "python311", "python311Packages.pip", "python311Packages.virtualenv"]
 
 [phases.install]
 cmds = [
-    "which python3",
-    "which pip3 || which pip",
-    "pip3 install -r requirements.txt || pip install -r requirements.txt",
+    "python3 -m venv venv",
+    "source venv/bin/activate && pip install -r requirements.txt",
     "cd frontend && npm install"
 ]
 
@@ -16,4 +14,4 @@ cmds = [
 ]
 
 [start]
-cmd = "python3 main.py"
+cmd = "source venv/bin/activate && python main.py"
