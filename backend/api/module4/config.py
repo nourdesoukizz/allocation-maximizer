@@ -26,14 +26,20 @@ class Settings(BaseSettings):
     port: int = 8004
     
     # CORS settings
-    allowed_origins: List[str] = [
-        "http://localhost:3000",  # React frontend dev
-        "http://localhost:3001",  # React frontend production
-        "http://localhost:8000",  # Alternative frontend
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-        "http://127.0.0.1:8000"
-    ]
+    allowed_origins: List[str] = ["*"]  # Allow all origins for production deployment
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Override CORS origins from environment variable if set
+        cors_origins = os.getenv("CORS_ORIGINS", "").strip()
+        if cors_origins:
+            if cors_origins == "*":
+                self.allowed_origins = ["*"]
+            else:
+                self.allowed_origins = [origin.strip() for origin in cors_origins.split(",")]
+        elif self.environment == "production":
+            # In production, allow all origins unless explicitly set
+            self.allowed_origins = ["*"]
     
     # Data paths
     data_directory: str = "../../data/module4"
