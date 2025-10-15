@@ -6,16 +6,34 @@ For Railway deployment - serves both API and frontend
 
 import os
 import sys
+import logging
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Add the backend path to sys.path
-backend_path = os.path.join(os.path.dirname(__file__), 'backend', 'api', 'module4')
+backend_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'api', 'module4')
 sys.path.insert(0, backend_path)
 
-from main import app as backend_app
+logger.info(f"Backend path: {backend_path}")
+logger.info(f"sys.path: {sys.path[:3]}")
+
+# Import backend app with error handling
+try:
+    from backend.api.module4.main import app as backend_app
+    logger.info("Successfully imported backend app")
+except ImportError as e:
+    logger.error(f"Failed to import backend app: {e}")
+    # Fallback: create minimal backend app
+    backend_app = FastAPI(title="Backend API - Initialization Failed")
+    @backend_app.get("/health")
+    async def backend_health():
+        return {"status": "degraded", "error": "Backend initialization failed"}
 
 # Create main app that serves both API and frontend
 app = FastAPI(title="Allocation Maximizer - Full Stack")
