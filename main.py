@@ -52,29 +52,23 @@ async def railway_health_check():
 # Mount the backend API under /api
 app.mount("/api", backend_app)
 
+# Add root handler for frontend
+@app.get("/")
+async def serve_root():
+    """Serve frontend at root"""
+    frontend_dist_path = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
+    if os.path.exists(frontend_dist_path):
+        index_path = os.path.join(frontend_dist_path, 'index.html')
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+    return {"message": "Frontend not built. Build the frontend with 'cd frontend && npm run build'"}
+
 # Serve static frontend files
 frontend_dist_path = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
 if os.path.exists(frontend_dist_path):
-    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_path, 'assets')), name="assets")
-    
-    # Add root handler
-    @app.get("/")
-    async def serve_root():
-        """Serve frontend at root"""
-        index_path = os.path.join(frontend_dist_path, 'index.html')
-        return FileResponse(index_path)
-    
-    @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str):
-        """Serve frontend for all non-API routes (SPA routing)"""
-        # Serve index.html for all frontend routes
-        index_path = os.path.join(frontend_dist_path, 'index.html')
-        return FileResponse(index_path)
-else:
-    @app.get("/")
-    async def no_frontend():
-        """Message when frontend is not built"""
-        return {"message": "Frontend not built. Run 'cd frontend && npm run build' to build the frontend."}
+    assets_path = os.path.join(frontend_dist_path, 'assets')
+    if os.path.exists(assets_path):
+        app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
