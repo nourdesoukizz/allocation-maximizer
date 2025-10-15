@@ -32,7 +32,8 @@ app = FastAPI(
     description="Module 4: Advanced allocation optimization with priority and fair share strategies",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    redirect_slashes=False
 )
 
 # Add CORS middleware

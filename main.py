@@ -36,13 +36,18 @@ except ImportError as e:
         return {"status": "degraded", "error": "Backend initialization failed"}
 
 # Create main app that serves both API and frontend
-app = FastAPI(title="Allocation Maximizer - Full Stack")
+# Disable redirect_slashes to prevent 307 redirects on health checks
+app = FastAPI(
+    title="Allocation Maximizer - Full Stack",
+    redirect_slashes=False
+)
 
 # Add root-level health endpoint for Railway - simple and direct
+# This MUST be defined before mounting sub-apps and catch-all routes
 @app.get("/health")
 async def railway_health_check():
     """Simple health check for Railway deployment"""
-    return {"status": "healthy"}
+    return {"status": "healthy", "service": "allocation-maximizer"}
 
 # Mount the backend API under /api
 app.mount("/api", backend_app)
@@ -61,16 +66,8 @@ if os.path.exists(frontend_dist_path):
     
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
-        """Serve frontend for all non-API routes"""
-        # Skip this route for health check
-        if full_path == "health":
-            return {"error": "Route not found"}
-            
-        if full_path.startswith("api/"):
-            # This shouldn't happen due to mount order, but just in case
-            return {"error": "API route not found"}
-        
-        # Serve index.html for all frontend routes (SPA routing)
+        """Serve frontend for all non-API routes (SPA routing)"""
+        # Serve index.html for all frontend routes
         index_path = os.path.join(frontend_dist_path, 'index.html')
         return FileResponse(index_path)
 else:
@@ -81,9 +78,13 @@ else:
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
+    logger.info(f"Starting server on 0.0.0.0:{port}")
+    logger.info(f"Environment PORT variable: {os.environ.get('PORT', 'not set')}")
+    
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=port,
-        reload=False
+        reload=False,
+        log_level="info"
     )
