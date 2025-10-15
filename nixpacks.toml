@@ -14,4 +14,4 @@ cmds = [
 ]
 
 [start]
-cmd = "bash -c 'source venv/bin/activate && python main.py'"
+cmd = "venv/bin/python main.py"
