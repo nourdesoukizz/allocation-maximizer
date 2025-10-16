@@ -8,7 +8,7 @@ import os
 import sys
 import logging
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
@@ -53,23 +53,37 @@ async def railway_health_check():
 # Mount the backend API under /api AFTER health endpoint
 app.mount("/api", backend_app)
 
-# Add root handler for frontend
-@app.get("/")
-async def serve_root():
-    """Serve frontend at root"""
-    frontend_dist_path = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
-    if os.path.exists(frontend_dist_path):
-        index_path = os.path.join(frontend_dist_path, 'index.html')
-        if os.path.exists(index_path):
-            return FileResponse(index_path)
-    return {"message": "Frontend not built. Build the frontend with 'cd frontend && npm run build'"}
-
-# Serve static frontend files
+# Serve static frontend files FIRST
 frontend_dist_path = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
 if os.path.exists(frontend_dist_path):
+    # Mount assets directory
     assets_path = os.path.join(frontend_dist_path, 'assets')
     if os.path.exists(assets_path):
         app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+    
+    # Serve index.html for all frontend routes (SPA)
+    @app.get("/")
+    async def serve_root():
+        """Serve frontend at root"""
+        index_path = os.path.join(frontend_dist_path, 'index.html')
+        logger.info(f"Serving frontend from: {index_path}")
+        return FileResponse(index_path)
+    
+    # Catch-all route for SPA routing (must be last)
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve SPA for all non-API routes"""
+        # Skip API routes and health
+        if full_path.startswith("api/") or full_path == "health":
+            raise HTTPException(status_code=404, detail="Not found")
+        
+        index_path = os.path.join(frontend_dist_path, 'index.html')
+        logger.info(f"SPA routing: {full_path} -> {index_path}")
+        return FileResponse(index_path)
+else:
+    @app.get("/")
+    async def no_frontend():
+        return {"message": "Frontend not built. Build the frontend with 'cd frontend && npm run build'"}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
