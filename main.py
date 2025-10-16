@@ -79,6 +79,10 @@ if os.path.exists(frontend_dist_path):
         """Serve frontend at root"""
         index_path = os.path.join(frontend_dist_path, 'index.html')
         logger.info(f"Serving frontend from: {index_path}")
+        logger.info(f"Frontend dist contents: {os.listdir(frontend_dist_path) if os.path.exists(frontend_dist_path) else 'NOT FOUND'}")
+        assets_dir = os.path.join(frontend_dist_path, 'assets')
+        if os.path.exists(assets_dir):
+            logger.info(f"Assets directory contents: {os.listdir(assets_dir)}")
         return FileResponse(index_path)
     
     # Catch-all route for SPA routing (must be last)
