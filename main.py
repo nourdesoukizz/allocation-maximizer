@@ -56,10 +56,22 @@ app.mount("/api", backend_app)
 # Serve static frontend files FIRST
 frontend_dist_path = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
 if os.path.exists(frontend_dist_path):
-    # Mount assets directory
+    # Mount the entire dist directory for static files (handles vite.svg, etc.)
+    app.mount("/static", StaticFiles(directory=frontend_dist_path), name="static")
+    
+    # Mount assets directory specifically 
     assets_path = os.path.join(frontend_dist_path, 'assets')
     if os.path.exists(assets_path):
         app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+    
+    # Handle specific static files at root level
+    @app.get("/vite.svg")
+    async def serve_vite_svg():
+        """Serve vite.svg from frontend dist"""
+        svg_path = os.path.join(frontend_dist_path, 'vite.svg')
+        if os.path.exists(svg_path):
+            return FileResponse(svg_path)
+        raise HTTPException(status_code=404, detail="vite.svg not found")
     
     # Serve index.html for all frontend routes (SPA)
     @app.get("/")
@@ -73,8 +85,12 @@ if os.path.exists(frontend_dist_path):
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Serve SPA for all non-API routes"""
-        # Skip API routes and health
-        if full_path.startswith("api/") or full_path == "health":
+        # Skip API routes, health, assets, and static files
+        if (full_path.startswith("api/") or 
+            full_path == "health" or 
+            full_path.startswith("assets/") or 
+            full_path.startswith("static/") or
+            full_path.endswith(('.js', '.css', '.svg', '.png', '.jpg', '.ico'))):
             raise HTTPException(status_code=404, detail="Not found")
         
         index_path = os.path.join(frontend_dist_path, 'index.html')
