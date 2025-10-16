@@ -42,15 +42,15 @@ app = FastAPI(
     redirect_slashes=False
 )
 
+# Mount the backend API under /api FIRST
+app.mount("/api", backend_app)
+
 # Add root-level health endpoint for Railway - simple and direct
-# This MUST be defined before mounting sub-apps and catch-all routes
+# This MUST be defined AFTER mounting sub-apps to avoid conflicts
 @app.get("/health")
 async def railway_health_check():
     """Simple health check for Railway deployment"""
     return {"status": "healthy", "service": "allocation-maximizer"}
-
-# Mount the backend API under /api
-app.mount("/api", backend_app)
 
 # Add root handler for frontend
 @app.get("/")
