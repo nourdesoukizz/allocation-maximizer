@@ -50,7 +50,33 @@ async def railway_health_check():
     logger.info("Health check endpoint called")
     return {"status": "healthy", "service": "allocation-maximizer"}
 
-# Mount the backend API under /api AFTER health endpoint
+# Add a middleware to intercept requests before they reach the backend
+@app.middleware("http")
+async def intercept_frontend_routes(request, call_next):
+    """Intercept frontend routes before backend middleware can handle them"""
+    path = request.url.path
+    
+    # Handle root route for frontend
+    if path == "/":
+        logger.info("Middleware intercepting root route for frontend")
+        frontend_dist_path = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
+        if os.path.exists(frontend_dist_path):
+            index_path = os.path.join(frontend_dist_path, 'index.html')
+            logger.info(f"Serving frontend from: {index_path}")
+            logger.info(f"Frontend dist contents: {os.listdir(frontend_dist_path) if os.path.exists(frontend_dist_path) else 'NOT FOUND'}")
+            assets_dir = os.path.join(frontend_dist_path, 'assets')
+            if os.path.exists(assets_dir):
+                logger.info(f"Assets directory contents: {os.listdir(assets_dir)}")
+            from fastapi.responses import FileResponse
+            return FileResponse(index_path)
+        else:
+            logger.error("Frontend dist directory not found!")
+            return {"error": "Frontend not built"}
+    
+    # Continue with normal request processing
+    return await call_next(request)
+
+# Mount the backend API under /api AFTER middleware setup
 app.mount("/api", backend_app)
 
 # Serve static frontend files FIRST
