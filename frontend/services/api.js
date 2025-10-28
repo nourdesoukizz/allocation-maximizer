@@ -3,8 +3,8 @@
  * Handles communication with the FastAPI backend
  */
 
-// API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8004';
+// API Configuration - defaults to production path
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/module4';
 const TIMEOUT = 30000; // 30 seconds
 
 /**

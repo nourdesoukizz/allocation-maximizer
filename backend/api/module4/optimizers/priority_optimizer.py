@@ -50,11 +50,16 @@ class PriorityOptimizer(BaseOptimizer):
                 - respect_customer_tier: bool (default True)
                 - allow_overflow: bool (default False) 
                 - max_iterations: int (default 5)
+                - determinism_seed: int (default 42) - Seed for reproducible results
             
         Returns:
             AllocationResult object
         """
         start_time = time.time()
+        
+        # Set deterministic seed for reproducible results
+        determinism_seed = kwargs.get('determinism_seed', 42)
+        np.random.seed(determinism_seed)
         
         # Validate input data
         self.validate_input_data(allocation_data)

@@ -518,18 +518,20 @@ def validate_allocation_data(df: pd.DataFrame) -> List[str]:
     
     # Value range checks
     if 'customer_tier' in df.columns:
-        valid_tiers = ['A', 'B', 'C', 'a', 'b', 'c']
+        valid_tiers = ['A', 'B', 'C', 'a', 'b', 'c', 'Strategic', 'Premium', 'Standard', 'Basic', 'strategic', 'premium', 'standard', 'basic']
         invalid_tiers = ~df['customer_tier'].isin(valid_tiers)
         if invalid_tiers.any():
-            errors.append("Customer tier must be A, B, or C")
+            errors.append("Customer tier must be A, B, C, Strategic, Premium, Standard, or Basic")
     
     if 'sla_level' in df.columns:
-        valid_slas = ['Premium', 'Standard', 'Basic', 'premium', 'standard', 'basic']
+        valid_slas = ['Premium', 'Standard', 'Basic', 'premium', 'standard', 'basic', 'Gold', 'Silver', 'Bronze', 'gold', 'silver', 'bronze']
         invalid_slas = ~df['sla_level'].isin(valid_slas)
         if invalid_slas.any():
-            errors.append("SLA level must be Premium, Standard, or Basic")
+            errors.append("SLA level must be Premium, Standard, Basic, Gold, Silver, or Bronze")
     
     logger.info(f"Validation completed with {len(errors)} errors")
+    if errors:
+        logger.error(f"Validation errors: {errors}")
     return errors
 
 

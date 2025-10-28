@@ -45,11 +45,16 @@ class FairShareOptimizer(BaseOptimizer):
                 - fairness_weight: float (0-1, default 0.7) - Balance between demand satisfaction and fairness
                 - min_allocation_threshold: float (default 1.0) - Minimum viable allocation
                 - max_rebalancing_iterations: int (default 10) - Maximum rebalancing rounds
+                - determinism_seed: int (default 42) - Seed for reproducible results
             
         Returns:
             AllocationResult object
         """
         start_time = time.time()
+        
+        # Set deterministic seed for reproducible results
+        determinism_seed = kwargs.get('determinism_seed', 42)
+        np.random.seed(determinism_seed)
         
         # Validate input data
         self.validate_input_data(allocation_data)

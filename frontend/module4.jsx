@@ -110,8 +110,26 @@ const Module4AllocationPage = () => {
     }
   };
 
-  // Helper function to create sample allocation data
+  // Helper function to create sample allocation data using actual CSV data
   const createSampleAllocationData = (formData) => {
+    // If we have CSV data available, use it instead of generating random data
+    if (csvData && csvData.length > 0) {
+      // Use the actual CSV data - this ensures deterministic results
+      return csvData.map(row => ({
+        dc_id: row.dc_id,
+        sku_id: row.sku_id,
+        customer_id: row.customer_id,
+        current_inventory: parseInt(row.current_inventory),
+        forecasted_demand: parseInt(row.forecasted_demand),
+        dc_priority: parseInt(row.dc_priority) || 1,
+        customer_tier: row.customer_tier,
+        sla_level: row.sla_level,
+        min_order_quantity: parseInt(row.min_order_quantity) || 1,
+        sku_category: row.sku_category || 'electronics',
+      }));
+    }
+
+    // Fallback to deterministic sample data (no random values)
     const dcIds = formData.dcIds?.length ? formData.dcIds : ['DC001', 'DC002', 'DC003'];
     const productIds = formData.productIds?.length ? formData.productIds : ['SKU001', 'SKU002'];
     const customerIds = formData.customerIds?.length ? formData.customerIds : ['CUST001', 'CUST002'];
@@ -121,12 +139,16 @@ const Module4AllocationPage = () => {
     dcIds.forEach((dcId, dcIndex) => {
       productIds.forEach((productId, productIndex) => {
         customerIds.forEach((customerId, customerIndex) => {
+          // Use deterministic values based on indices instead of Math.random()
+          const baseInventory = 500 + (dcIndex * 100) + (productIndex * 50);
+          const baseDemand = 300 + (customerIndex * 100) + (productIndex * 25);
+          
           allocationData.push({
             dc_id: dcId,
             sku_id: productId,
             customer_id: customerId,
-            current_inventory: Math.floor(Math.random() * 1000) + 100,
-            forecasted_demand: Math.floor(Math.random() * 800) + 50,
+            current_inventory: baseInventory,
+            forecasted_demand: baseDemand,
             dc_priority: dcIndex + 1,
             customer_tier: ['A', 'B', 'C'][customerIndex % 3],
             sla_level: ['Premium', 'Standard', 'Basic'][customerIndex % 3],

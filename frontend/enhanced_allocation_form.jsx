@@ -133,9 +133,36 @@ const StrategyButton = ({ strategy, selected, onSelect, icon, title, description
 );
 
 const EnhancedAllocationForm = ({ onRunAllocation, loading, exampleData }) => {
-  // Date selection
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  // Date selection - Default to November 2024 (earliest future planning period)
+  const getDefaultMonth = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    
+    // If we're in 2024 and it's October or earlier, default to November 2024
+    // If we're in 2024 and it's November or later, default to current month
+    // If we're in 2025 or later, default to current month
+    if (currentYear === 2024 && currentMonth <= 10) {
+      return 11; // November
+    }
+    return currentMonth;
+  };
+  
+  const getDefaultYear = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    
+    // If we're in 2024 and it's October or earlier, default to 2024
+    // Otherwise use current year
+    if (currentYear === 2024 && currentMonth <= 10) {
+      return 2024;
+    }
+    return currentYear;
+  };
+
+  const [selectedMonth, setSelectedMonth] = useState(6); // June
+  const [selectedYear, setSelectedYear] = useState(2026); // Fixed year
 
   // Multi-select states
   const [selectedCustomers, setSelectedCustomers] = useState([]);
@@ -153,9 +180,10 @@ const EnhancedAllocationForm = ({ onRunAllocation, loading, exampleData }) => {
     { value: 10, label: 'October' }, { value: 11, label: 'November' }, { value: 12, label: 'December' }
   ];
 
-  // Generate year options (current year + 2 years back and forward)
+  // Generate year options (2024 onwards for future planning only)
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
+  const startYear = Math.max(2024, currentYear); // Don't allow years before 2024
+  const years = Array.from({ length: 5 }, (_, i) => startYear + i);
 
   // Initialize with all items selected by default
   useEffect(() => {
@@ -174,32 +202,63 @@ const EnhancedAllocationForm = ({ onRunAllocation, loading, exampleData }) => {
     e.preventDefault();
     
     // Create allocation data based on selected items
+    // Use only the CSV data combinations that exist and filter by user selections
     const allocationData = [];
     
-    selectedCustomers.forEach(customerId => {
-      selectedDCs.forEach(dcId => {
-        selectedMaterials.forEach(materialId => {
-          const customer = exampleData.customers.find(c => c.id === customerId);
-          const dc = exampleData.distributionCenters.find(d => d.id === dcId);
-          const material = exampleData.products.find(p => p.id === materialId);
-          
-          if (customer && dc && material) {
-            allocationData.push({
-              dc_id: dc.id,
-              sku_id: material.id,
-              customer_id: customer.id,
-              current_inventory: Math.floor(Math.random() * 1000) + 100, // Mock inventory
-              forecasted_demand: Math.floor(Math.random() * 500) + 50,   // Mock demand
-              dc_priority: dc.priority || Math.floor(Math.random() * 5) + 1,
-              customer_tier: customer.tier === 'Strategic' ? 'A' : customer.tier === 'Standard' ? 'B' : 'C',
-              sla_level: customer.tier === 'Strategic' ? 'Premium' : 'Standard',
-              min_order_quantity: 10,
-              sku_category: material.category || 'general'
-            });
-          }
+    if (exampleData.csvData && exampleData.csvData.length > 0) {
+      // Filter existing CSV data based on user selections
+      const filteredRecords = exampleData.csvData.filter(record => 
+        selectedCustomers.includes(record.customer_id) &&
+        selectedDCs.includes(record.dc_id) &&
+        selectedMaterials.includes(record.sku_id)
+      );
+      
+      // Use the filtered CSV records directly
+      filteredRecords.forEach(csvRecord => {
+        allocationData.push({
+          dc_id: csvRecord.dc_id,
+          sku_id: csvRecord.sku_id,
+          customer_id: csvRecord.customer_id,
+          current_inventory: parseInt(csvRecord.current_inventory),
+          forecasted_demand: parseInt(csvRecord.forecasted_demand),
+          dc_priority: parseInt(csvRecord.dc_priority),
+          customer_tier: csvRecord.customer_tier,
+          sla_level: csvRecord.sla_level,
+          min_order_quantity: parseInt(csvRecord.min_order_quantity),
+          sku_category: csvRecord.sku_category
         });
       });
-    });
+    } else {
+      // Fallback: Create deterministic data for all combinations if no CSV data
+      selectedCustomers.forEach(customerId => {
+        selectedDCs.forEach(dcId => {
+          selectedMaterials.forEach(materialId => {
+            const customer = exampleData.customers.find(c => c.id === customerId);
+            const dc = exampleData.distributionCenters.find(d => d.id === dcId);
+            const material = exampleData.products.find(p => p.id === materialId);
+            
+            if (customer && dc && material) {
+              // Create deterministic values based on IDs
+              const baseInventory = 500 + (dc.priority || 1) * 100 + material.id.charCodeAt(material.id.length-1) * 10;
+              const baseDemand = 300 + customer.id.charCodeAt(customer.id.length-1) * 50 + material.id.charCodeAt(material.id.length-2) * 20;
+              
+              allocationData.push({
+                dc_id: dc.id,
+                sku_id: material.id,
+                customer_id: customer.id,
+                current_inventory: parseInt(baseInventory),
+                forecasted_demand: parseInt(baseDemand),
+                dc_priority: dc.priority || 5,
+                customer_tier: customer.tier === 'Strategic' ? 'Strategic' : customer.tier === 'Standard' ? 'Standard' : 'Premium',
+                sla_level: customer.tier === 'Strategic' ? 'Gold' : 'Silver',
+                min_order_quantity: 1,
+                sku_category: material.category || 'general'
+              });
+            }
+          });
+        });
+      });
+    }
 
     onRunAllocation({
       selectedMonth,
@@ -234,27 +293,15 @@ const EnhancedAllocationForm = ({ onRunAllocation, loading, exampleData }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Month</label>
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {months.map(month => (
-                  <option key={month.value} value={month.value}>{month.label}</option>
-                ))}
-              </select>
+              <div className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-medium">
+                June
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {years.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+              <div className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-medium">
+                2026
+              </div>
             </div>
           </div>
         </div>

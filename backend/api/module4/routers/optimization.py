@@ -36,35 +36,44 @@ limiter = get_rate_limiter()
 
 def _generate_request_hash(request: OptimizationRequest) -> str:
     """Generate a hash for the optimization request to use as cache key"""
-    # Create a consistent hash based on request parameters
+    
+    # Sort allocation data for consistent ordering
+    sorted_allocation_data = sorted([
+        {
+            'dc_id': record.dc_id,
+            'sku_id': record.sku_id,
+            'customer_id': record.customer_id,
+            'current_inventory': record.current_inventory,
+            'forecasted_demand': record.forecasted_demand,
+            'dc_priority': record.dc_priority,
+            'customer_tier': record.customer_tier,
+            'sla_level': record.sla_level,
+            'min_order_quantity': record.min_order_quantity or 1.0,
+            'sku_category': record.sku_category or 'default'
+        }
+        for record in request.allocation_data
+    ], key=lambda x: (x['dc_id'], x['customer_id'], x['sku_id']))  # Consistent sorting
+    
+    # Create a comprehensive hash based on ALL request parameters
     request_data = {
         'strategy': request.strategy.value,
-        'allocation_data': [
-            {
-                'dc_id': record.dc_id,
-                'sku_id': record.sku_id,
-                'customer_id': record.customer_id,
-                'current_inventory': record.current_inventory,
-                'forecasted_demand': record.forecasted_demand,
-                'dc_priority': record.dc_priority,
-                'customer_tier': record.customer_tier,
-                'sla_level': record.sla_level,
-                'min_order_quantity': record.min_order_quantity,
-                'sku_category': record.sku_category
-            }
-            for record in request.allocation_data
-        ],
+        'allocation_data': sorted_allocation_data,
         'constraints': request.constraints.dict() if request.constraints else None,
         'strategy_params': request.strategy_params or {},
         'priority_weight': request.priority_weight or 0.6,
         'fairness_weight': request.fairness_weight or 0.4,
         'prefer_efficiency': request.prefer_efficiency or True,
-        'prefer_speed': request.prefer_speed or False
+        'prefer_speed': request.prefer_speed or False,
+        'max_execution_time': request.max_execution_time or 60,
+        # Add determinism seed for reproducible results
+        'determinism_seed': 42
     }
     
-    # Create hash from JSON representation
+    # Create hash from JSON representation with sorted keys
     request_json = json.dumps(request_data, sort_keys=True, default=str)
-    return hashlib.sha256(request_json.encode()).hexdigest()[:16]
+    hash_value = hashlib.sha256(request_json.encode()).hexdigest()[:16]
+    
+    return hash_value
 
 @router.post("/optimize", response_model=OptimizationResponse)
 @limiter.limit("100/minute")
@@ -85,6 +94,20 @@ async def optimize_allocation(optimization_request: OptimizationRequest, request
         # Generate cache key for this request
         request_hash = _generate_request_hash(optimization_request)
         cache_key = CacheKeys.optimization_result(request_hash)
+        
+        # Debug: log first few allocation records to see what data is being sent
+        if optimization_request.allocation_data:
+            logger.info(f"=== REQUEST DEBUG ===")
+            logger.info(f"Total allocation records: {len(optimization_request.allocation_data)}")
+            logger.info(f"First 3 records: {[{
+                'dc_id': r.dc_id, 
+                'sku_id': r.sku_id, 
+                'customer_id': r.customer_id,
+                'current_inventory': r.current_inventory,
+                'forecasted_demand': r.forecasted_demand
+            } for r in optimization_request.allocation_data[:3]]}")
+            logger.info(f"Generated hash: {request_hash}")
+            logger.info(f"=== END REQUEST DEBUG ===")
         
         # Get cache service
         cache_service = await get_cache_service()
@@ -123,7 +146,8 @@ async def optimize_allocation(optimization_request: OptimizationRequest, request
             priority_weight=optimization_request.priority_weight or 0.6,
             fairness_weight=optimization_request.fairness_weight or 0.4,
             prefer_efficiency=optimization_request.prefer_efficiency or True,
-            prefer_speed=optimization_request.prefer_speed or False
+            prefer_speed=optimization_request.prefer_speed or False,
+            determinism_seed=42  # Fixed seed for reproducible results
         )
         
         # Run optimization
@@ -409,10 +433,27 @@ async def get_csv_data_preview() -> Dict[str, Any]:
             for _, row in products.iterrows()
         ]
         
+        # Include the actual CSV data records for deterministic allocation generation
+        csv_records = []
+        for _, row in df.iterrows():
+            csv_records.append({
+                'dc_id': row['dc_id'],
+                'sku_id': row['sku_id'], 
+                'customer_id': row['customer_id'],
+                'current_inventory': int(row['current_inventory']),
+                'forecasted_demand': int(row['forecasted_demand']),
+                'dc_priority': int(row['dc_priority']),
+                'customer_tier': row['customer_tier'],
+                'sla_level': row['sla_level'],
+                'min_order_quantity': int(row['min_order_quantity']),
+                'sku_category': row['sku_category']
+            })
+        
         return {
             'customers': customers_list,
             'distributionCenters': dcs_list,
             'products': products_list,
+            'csvData': csv_records,  # Add the actual CSV data records
             'totalRecords': len(df),
             'lastUpdated': df['date'].iloc[0] if 'date' in df.columns else None
         }
@@ -466,7 +507,7 @@ async def get_available_strategies() -> Dict[str, Any]:
 
 # Helper functions
 def _convert_request_to_dataframe(allocation_data: List[AllocationRecord]) -> pd.DataFrame:
-    """Convert request allocation data to pandas DataFrame"""
+    """Convert request allocation data to pandas DataFrame with consistent sorting"""
     data = []
     for record in allocation_data:
         data.append({
@@ -482,7 +523,13 @@ def _convert_request_to_dataframe(allocation_data: List[AllocationRecord]) -> pd
             'sku_category': record.sku_category or 'default'
         })
     
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    
+    # Sort DataFrame for consistent ordering (deterministic behavior)
+    if not df.empty:
+        df = df.sort_values(['dc_id', 'customer_id', 'sku_id']).reset_index(drop=True)
+    
+    return df
 
 def _convert_constraints(constraints) -> BaseConstraints:
     """Convert API constraints to optimizer constraints"""
@@ -507,7 +554,7 @@ def _convert_result_to_response(result: BaseResult, strategy: str, request_id: s
             dc_id=str(row['dc_id']),
             sku_id=str(row['sku_id']),
             customer_id=str(row['customer_id']),
-            allocated_quantity=float(row['allocated_quantity']),
+            allocated_quantity=int(round(row['allocated_quantity'])),
             forecasted_demand=float(row['forecasted_demand']),
             current_inventory=float(row['current_inventory']),
             allocation_efficiency=float(row['allocated_quantity'] / row['forecasted_demand'] * 100) if row['forecasted_demand'] > 0 else 0.0,
@@ -522,7 +569,7 @@ def _convert_result_to_response(result: BaseResult, strategy: str, request_id: s
             customer_id=str(sub['customer_id']),
             original_sku=str(sub['original_sku']),
             substitute_sku=str(sub['substitute_sku']),
-            quantity=float(sub['quantity']),
+            quantity=int(round(sub['quantity'])),
             dc_id=str(sub['dc_id'])
         )
         substitutions.append(substitution)
